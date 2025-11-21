@@ -47,27 +47,32 @@ class DataVisualizer:
         plt.title('Average Sentiment Over Time')
         plt.show()
 
-    def visualize_topics(self, lda, vectorizer):
-        feature_names = vectorizer.get_feature_names_out()
-        n_top_words = 10
+    def visualize_topics(self, lda, dictionary, n_top_words=10):
+        """
+        Visualize topics from a Gensim LDA model.
+        """
+        topics = lda.show_topics(num_topics=-1, num_words=n_top_words, formatted=False)
 
-        fig, axes = plt.subplots(2, 3, figsize=(15, 10))
-        axes = axes.ravel()
+        n_topics = len(topics)
+        n_cols = 3
+        n_rows = (n_topics + n_cols - 1) // n_cols
+        fig, axes = plt.subplots(n_rows, n_cols, figsize=(15, 5 * n_rows))
+        axes = axes.flatten()
 
-        for idx, topic in enumerate(lda.components_):
-            top_idx = topic.argsort()[:-n_top_words-1:-1]
-            top_words = [feature_names[i] for i in top_idx]
-            top_vals = [topic[i] for i in top_idx]
-
-            axes[idx].barh(top_words, top_vals)
+        for idx, topic in topics:
+            words, weights = zip(*topic)
+            axes[idx].barh(words, weights)
             axes[idx].invert_yaxis()
             axes[idx].set_title(f"Topic {idx + 1}")
+
+        # Remove empty subplots
+        for ax in axes[n_topics:]:
+            fig.delaxes(ax)
 
         plt.tight_layout()
         plt.show()
 
     def visualize_key_phrases(self, phrase_counts):
-
         phrase_df = pd.DataFrame.from_dict(phrase_counts, orient='index', columns=['count'])
         phrase_df = phrase_df.sort_values('count')
 

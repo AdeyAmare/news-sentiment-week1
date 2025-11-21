@@ -169,29 +169,37 @@ class DataAnalyzer:
         print("\n=== Completed Sentiment Analysis ===\n")
         return self.df
 
-    def extract_topics(self):
-        print("\n================= STEP 5: TOPIC MODELING =================")
-        print("[1] Vectorizing text (CountVectorizer)...")
+    def extract_topics(self, num_topics=5, passes=2, chunksize=10000, no_below=10, no_above=0.3):
+        print("\n================= STEP 5: TOPIC MODELING (Optimized for Single-Core) =================")
+        print("[1] Preprocessing headlines for Gensim LDA...")
 
-        vectorizer = CountVectorizer(max_features=1000, stop_words='english')
-        doc_term_matrix = vectorizer.fit_transform(self.df['headline'])
+        # Tokenize headlines
+        texts = [headline.lower().split() for headline in self.df['headline']]
 
-        print("[2] Fitting LDA model with 5 topics...")
-        lda = LatentDirichletAllocation(
-            n_components=5,
-            max_iter=10,
-            learning_method='online',
-            random_state=42,
-            n_jobs=-1,
+        # Create dictionary and filter extremes
+        dictionary = corpora.Dictionary(texts)
+        dictionary.filter_extremes(no_below=no_below, no_above=no_above)
+        corpus = [dictionary.doc2bow(text) for text in texts]
+
+        print(f"[2] Dictionary size: {len(dictionary)}")
+        print(f"[3] Corpus size: {len(corpus)} documents")
+
+        print(f"[4] Fitting LDA model with {num_topics} topics (single-core)...")
+        lda = LdaModel(
+            corpus=corpus,
+            id2word=dictionary,
+            num_topics=num_topics,
+            passes=passes,
+            chunksize=chunksize,
+            random_state=42
         )
 
-        topic_results = lda.fit_transform(doc_term_matrix)
-
-        print("[3] Topic probability matrix generated.")
-        print(topic_results)
+        print("[5] Sample topics:")
+        for idx, topic in lda.print_topics(-1):
+            print(f"Topic {idx}: {topic}")
 
         print("\n=== Completed Topic Modeling ===\n")
-        return lda, vectorizer
+        return lda, dictionary, corpus
 
     def analyze_key_phrases(self):
         print("\n================= STEP 6: KEY FINANCIAL PHRASE ANALYSIS =================")
