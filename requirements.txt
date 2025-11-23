@@ -1,8 +1,11 @@
 annotated-types==0.7.0
 asttokens==3.0.1
+beautifulsoup4==4.14.2
 blis==1.3.3
+build==1.3.0
 catalogue==2.0.10
 certifi==2025.11.12
+cffi==2.0.0
 charset-normalizer==3.4.4
 click==8.3.1
 cloudpathlib==0.23.0
@@ -10,6 +13,7 @@ colorama==0.4.6
 comm==0.2.3
 confection==0.1.5
 contourpy==1.3.3
+curl_cffi==0.13.0
 cycler==0.12.1
 cymem==2.0.13
 debugpy==1.8.17
@@ -17,6 +21,7 @@ decorator==5.2.1
 en_core_web_sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl#sha256=1932429db727d4bff3deed6b34cfc05df17794f4a52eeb26cf8928f7c1a0fb85
 executing==2.2.1
 fonttools==4.60.1
+frozendict==2.4.7
 funcy==2.0
 gensim==4.4.0
 idna==3.11
@@ -29,9 +34,12 @@ joblib==1.5.2
 jupyter_client==8.6.3
 jupyter_core==5.9.1
 kiwisolver==1.4.9
+lxml==6.0.2
 MarkupSafe==3.0.3
 matplotlib==3.10.7
 matplotlib-inline==0.2.1
+mplfinance==0.12.10b0
+multitasking==0.0.12
 murmurhash==1.0.15
 nest-asyncio==1.6.0
 nltk==3.9.2
@@ -39,18 +47,24 @@ numexpr==2.14.1
 numpy==2.3.5
 packaging==25.0
 pandas==2.3.3
+pandas-datareader==0.10.0
 parso==0.8.5
+peewee==3.18.3
 pillow==12.0.0
 platformdirs==4.5.0
 preshed==3.0.12
 prompt_toolkit==3.0.52
+protobuf==6.33.1
 psutil==7.1.3
 pure_eval==0.2.3
+pycparser==2.23
 pydantic==2.12.4
 pydantic_core==2.41.5
 Pygments==2.19.2
 pyLDAvis==3.4.1
+pynance==1.0.0
 pyparsing==3.2.5
+pyproject_hooks==1.2.0
 python-dateutil==2.9.0.post0
 pytz==2025.2
 pyzmq==27.1.0
@@ -62,11 +76,13 @@ seaborn==0.13.2
 setuptools==80.9.0
 six==1.17.0
 smart_open==7.5.0
+soupsieve==2.8
 spacy==3.8.11
 spacy-legacy==3.0.12
 spacy-loggers==1.0.5
 srsly==2.5.2
 stack-data==0.6.3
+TA-Lib==0.6.8
 textblob==0.19.0
 thinc==8.3.10
 threadpoolctl==3.6.0
@@ -82,5 +98,7 @@ vaderSentiment==3.3.2
 wasabi==1.1.3
 wcwidth==0.2.14
 weasel==0.4.3
+websockets==15.0.1
 wordcloud==1.9.4
 wrapt==2.0.1
+yfinance==0.2.66
