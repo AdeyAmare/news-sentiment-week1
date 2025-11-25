@@ -41,6 +41,7 @@ matplotlib-inline==0.2.1
 mplfinance==0.12.10b0
 multitasking==0.0.12
 murmurhash==1.0.15
+narwhals==2.12.0
 nest-asyncio==1.6.0
 nltk==3.9.2
 numexpr==2.14.1
@@ -52,6 +53,7 @@ parso==0.8.5
 peewee==3.18.3
 pillow==12.0.0
 platformdirs==4.5.0
+plotly==6.5.0
 preshed==3.0.12
 prompt_toolkit==3.0.52
 protobuf==6.33.1
@@ -62,7 +64,7 @@ pydantic==2.12.4
 pydantic_core==2.41.5
 Pygments==2.19.2
 pyLDAvis==3.4.1
-pynance==1.0.0
+pynance @ git+https://github.com/mqandil/pynance.git@c5e61505d60722d7e70bab80fff734181432026c
 pyparsing==3.2.5
 pyproject_hooks==1.2.0
 python-dateutil==2.9.0.post0
