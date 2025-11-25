@@ -7,6 +7,7 @@ import seaborn as sns
 import os
 import glob
 
+
 class NewsStockCorrelation:
     """
     Analyze correlation between news sentiment and stock price movements.
@@ -59,21 +60,21 @@ class NewsStockCorrelation:
             raise ValueError(f"No CSV files found in {self.stock_data_folder}")
 
         for file in csv_files:
-            ticker = os.path.basename(file).replace('.csv', '')
+            ticker = os.path.basename(file).replace(".csv", "")
             print(f"   - Processing {ticker}...")
 
             try:
                 df = pd.read_csv(file)
 
                 # Normalize dates
-                df['Date'] = pd.to_datetime(df['Date'], utc=True).dt.date
-                df = df.sort_values('Date')
+                df["Date"] = pd.to_datetime(df["Date"], utc=True).dt.date
+                df = df.sort_values("Date")
 
                 # Daily return
-                df['daily_return'] = df['Close'].pct_change()
+                df["daily_return"] = df["Close"].pct_change()
 
-                df['stock_symbol'] = ticker
-                df_clean = df[['Date', 'stock_symbol', 'daily_return']].copy()
+                df["stock_symbol"] = ticker
+                df_clean = df[["Date", "stock_symbol", "daily_return"]].copy()
                 all_stocks.append(df_clean)
 
             except Exception as e:
@@ -103,28 +104,28 @@ class NewsStockCorrelation:
                 ['Date', 'stock_symbol', 'sentiment_score'].
         """
         print("\n[2/4] Loading and processing news data... (may take time)")
-        
+
         try:
             df = pd.read_csv(self.news_data_path)
             print(f" → Loaded {len(df)} news articles.")
 
             # Date normalization
-            df['Date'] = pd.to_datetime(df['date'], errors='coerce', utc=True).dt.date
-            df = df.rename(columns={'stock': 'stock_symbol'})
+            df["Date"] = pd.to_datetime(df["date"], errors="coerce", utc=True).dt.date
+            df = df.rename(columns={"stock": "stock_symbol"})
 
-            df = df.dropna(subset=['Date', 'headline'])
+            df = df.dropna(subset=["Date", "headline"])
             print(f" → After cleaning: {len(df)} valid rows.")
 
             # Sentiment analysis
             print(" → Performing sentiment analysis on headlines...")
-            df['sentiment_score'] = df['headline'].apply(
+            df["sentiment_score"] = df["headline"].apply(
                 lambda x: TextBlob(str(x)).sentiment.polarity
             )
 
             self.news_df = (
-                df.groupby(['Date', 'stock_symbol'])['sentiment_score']
-                  .mean()
-                  .reset_index()
+                df.groupby(["Date", "stock_symbol"])["sentiment_score"]
+                .mean()
+                .reset_index()
             )
 
             print(f" ✔ News data processed ({self.news_df.shape[0]} daily entries).")
@@ -149,10 +150,7 @@ class NewsStockCorrelation:
             raise ValueError("Stock and news data must be loaded first.")
 
         self.merged_df = pd.merge(
-            self.news_df,
-            self.stock_df,
-            on=['Date', 'stock_symbol'],
-            how='inner'
+            self.news_df, self.stock_df, on=["Date", "stock_symbol"], how="inner"
         )
 
         print(f" ✔ Merge completed: {self.merged_df.shape[0]} rows matched.")
@@ -177,18 +175,20 @@ class NewsStockCorrelation:
 
         results = []
 
-        for ticker, group in self.merged_df.groupby('stock_symbol'):
-            clean = group.dropna(subset=['sentiment_score', 'daily_return'])
+        for ticker, group in self.merged_df.groupby("stock_symbol"):
+            clean = group.dropna(subset=["sentiment_score", "daily_return"])
 
             print(f"   - {ticker}: {len(clean)} valid rows")
             if len(clean) > 5:
-                corr, p = pearsonr(clean['sentiment_score'], clean['daily_return'])
-                results.append({
-                    'stock_symbol': ticker,
-                    'correlation': corr,
-                    'p_value': p,
-                    'count': len(clean)
-                })
+                corr, p = pearsonr(clean["sentiment_score"], clean["daily_return"])
+                results.append(
+                    {
+                        "stock_symbol": ticker,
+                        "correlation": corr,
+                        "p_value": p,
+                        "count": len(clean),
+                    }
+                )
 
         print(" ✔ Correlation analysis completed.")
         return pd.DataFrame(results)
@@ -203,21 +203,20 @@ class NewsStockCorrelation:
         plt.figure(figsize=(10, 6))
         sns.barplot(
             data=correlation_df,
-            x='stock_symbol',
-            y='correlation',
-            hue='stock_symbol',     # ← assigns a unique color to each ticker
+            x="stock_symbol",
+            y="correlation",
+            hue="stock_symbol",  # ← assigns a unique color to each ticker
             dodge=False,
-            palette='tab20'         # ← color set with many distinct colors
+            palette="tab20",  # ← color set with many distinct colors
         )
 
-        plt.title('Pearson Correlation: Daily Sentiment vs Stock Return')
-        plt.axhline(0, color='black', linewidth=1)
-        plt.ylabel('Correlation Coefficient')
-        plt.xlabel('Stock Symbol')
-        plt.legend(title="Ticker", bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.title("Pearson Correlation: Daily Sentiment vs Stock Return")
+        plt.axhline(0, color="black", linewidth=1)
+        plt.ylabel("Correlation Coefficient")
+        plt.xlabel("Stock Symbol")
+        plt.legend(title="Ticker", bbox_to_anchor=(1.05, 1), loc="upper left")
         plt.tight_layout()
         plt.show()
-
 
     # -------------------------------------------------------------------------
     def plot_scatter(self, ticker: str = None):
@@ -229,7 +228,7 @@ class NewsStockCorrelation:
         data = self.merged_df
 
         if ticker:
-            data = data[data['stock_symbol'] == ticker]
+            data = data[data["stock_symbol"] == ticker]
             title = f"Sentiment vs Returns: {ticker}"
         else:
             title = "Sentiment vs Returns: All Stocks"
@@ -237,22 +236,23 @@ class NewsStockCorrelation:
         plt.figure(figsize=(10, 6))
         sns.scatterplot(
             data=data,
-            x='sentiment_score',
-            y='daily_return',
-            hue='stock_symbol',    # ← different colors per ticker
-            palette='tab20',
-            alpha=0.7
+            x="sentiment_score",
+            y="daily_return",
+            hue="stock_symbol",  # ← different colors per ticker
+            palette="tab20",
+            alpha=0.7,
         )
 
-        plt.axhline(0, color='grey', linestyle='--')
-        plt.axvline(0, color='grey', linestyle='--')
-        plt.xlabel('Sentiment Score')
-        plt.ylabel('Daily Return')
+        plt.axhline(0, color="grey", linestyle="--")
+        plt.axvline(0, color="grey", linestyle="--")
+        plt.xlabel("Sentiment Score")
+        plt.ylabel("Daily Return")
         plt.title(title)
-        plt.legend(title="Ticker", bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.legend(title="Ticker", bbox_to_anchor=(1.05, 1), loc="upper left")
         plt.tight_layout()
         plt.show()
 
+    # -------------------------------------------------------------------------
     def plot_correlation_heatmap(self):
         """
         Plot a heatmap of correlations between tickers using sentiment vs return correlation.
@@ -265,35 +265,32 @@ class NewsStockCorrelation:
 
         # pivot: ticker vs ticker (sentiment-return correlation for each ticker)
         corr_df = (
-            self.merged_df
-            .groupby('stock_symbol')
-            .apply(lambda g: pearsonr(
-                g['sentiment_score'].dropna(),
-                g['daily_return'].dropna()
-            )[0] if len(g.dropna()) > 5 else np.nan)
-            .to_frame('correlation')
+            self.merged_df.groupby("stock_symbol")
+            .apply(
+                lambda g: pearsonr(
+                    g["sentiment_score"].dropna(), g["daily_return"].dropna()
+                )[0]
+                if len(g.dropna()) > 5
+                else np.nan
+            )
+            .to_frame("correlation")
         )
 
         # Convert to square matrix for heatmap
         heatmap_df = corr_df.pivot_table(
-            values="correlation",
-            index="stock_symbol",
-            columns="stock_symbol"
+            values="correlation", index="stock_symbol", columns="stock_symbol"
         )
 
         plt.figure(figsize=(10, 8))
         sns.heatmap(
-            heatmap_df,
-            annot=True,
-            cmap="coolwarm",
-            linewidths=0.5,
-            center=0
+            heatmap_df, annot=True, cmap="coolwarm", linewidths=0.5, center=0
         )
 
         plt.title("Correlation Heatmap: Sentiment vs Returns (Per Ticker)")
         plt.tight_layout()
         plt.show()
 
+    # -------------------------------------------------------------------------
     def plot_pairplot_all(self):
         """
         Generate a pairplot (sentiment vs returns) for all tickers.
@@ -303,7 +300,7 @@ class NewsStockCorrelation:
         if self.merged_df is None:
             self.merge_data()
 
-        data = self.merged_df.dropna(subset=['sentiment_score', 'daily_return'])
+        data = self.merged_df.dropna(subset=["sentiment_score", "daily_return"])
 
         sns.pairplot(
             data,
@@ -311,12 +308,13 @@ class NewsStockCorrelation:
             hue="stock_symbol",
             corner=True,
             diag_kind="kde",
-            palette="tab20"
+            palette="tab20",
         )
 
         plt.suptitle("Pairplot: Sentiment vs Daily Returns (All Tickers)", y=1.02)
         plt.show()
 
+    # -------------------------------------------------------------------------
     def plot_sentiment_distribution(self, ticker=None):
         """
         Plot the distribution of sentiment scores.
@@ -325,17 +323,17 @@ class NewsStockCorrelation:
         title = "All Stocks Sentiment Distribution"
 
         if ticker is not None:
-            data = data[data['stock_symbol'] == ticker]
+            data = data[data["stock_symbol"] == ticker]
             title = f"{ticker} Sentiment Distribution"
 
-        plt.figure(figsize=(10,6))
-        sns.histplot(data['sentiment_score'], bins=30, kde=True, color='skyblue')
+        plt.figure(figsize=(10, 6))
+        sns.histplot(data["sentiment_score"], bins=30, kde=True, color="skyblue")
         plt.title(title)
         plt.xlabel("Sentiment Score (-1 to 1)")
         plt.ylabel("Number of Headlines")
         plt.show()
 
-
+    # -------------------------------------------------------------------------
     def plot_daily_sentiment(self, ticker=None):
         """
         Plot time series of daily average sentiment scores.
@@ -344,18 +342,16 @@ class NewsStockCorrelation:
         title = "Daily Average Sentiment: All Stocks"
 
         if ticker is not None:
-            data = data[data['stock_symbol'] == ticker]
+            data = data[data["stock_symbol"] == ticker]
             title = f"Daily Average Sentiment: {ticker}"
 
-        data = data.sort_values('Date')
+        data = data.sort_values("Date")
 
-        plt.figure(figsize=(12,6))
-        sns.lineplot(data=data, x='Date', y='sentiment_score', marker='o')
+        plt.figure(figsize=(12, 6))
+        sns.lineplot(data=data, x="Date", y="sentiment_score", marker="o")
         plt.title(title)
         plt.xlabel("Date")
         plt.ylabel("Average Sentiment Score")
         plt.xticks(rotation=45)
         plt.grid(True)
         plt.show()
-
-
