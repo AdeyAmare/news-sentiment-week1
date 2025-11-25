@@ -11,67 +11,64 @@ import seaborn as sns
 from typing import Dict, List, Optional
 
 # Download necessary NLTK resources
-nltk.download('punkt', quiet=True)
-nltk.download('stopwords', quiet=True)
-nltk.download('wordnet', quiet=True)
-nltk.download('omw-1.4', quiet=True)
+nltk.download("punkt", quiet=True)
+nltk.download("stopwords", quiet=True)
+nltk.download("wordnet", quiet=True)
+nltk.download("omw-1.4", quiet=True)
 
 
 class FinancialDataAnalyzer:
     """
-    A class for exploring, cleaning, analyzing, and performing NLP on financial news datasets.
-    Methods include data exploration, cleaning, exploratory statistics, topic modeling, 
-    key phrase analysis, publisher analysis, and CSV export.
+    Analyze and process financial news datasets with methods for exploration, cleaning,
+    exploratory statistics, NLP-based topic modeling, key phrase analysis, publisher analysis, 
+    and CSV export.
     """
 
     def __init__(self, df: pd.DataFrame):
         """
         Initialize the analyzer with a dataframe.
+
         Args:
             df (pd.DataFrame): Raw financial news data.
         """
         self.df = df.copy()
         print(f"[INIT] Loaded dataset with {len(df)} rows and {len(df.columns)} columns.\n")
 
-    # ----------------------------------------------------------
-    # 1. EXPLORE RAW DATA
-    # ----------------------------------------------------------
     def explore_data(self) -> pd.DataFrame:
         """
         Explore basic characteristics of the dataset including missing values,
         duplicates, numeric and categorical summaries.
+
         Returns:
             pd.DataFrame: The original dataframe.
         """
         print("\n================ EXPLORING RAW DATA ================\n")
         print("[1] Dataset Overview")
         print(f"Rows: {len(self.df)} | Columns: {list(self.df.columns)}\n")
-        
+
         print("[2] Missing Values")
         print(self.df.isnull().sum()[lambda x: x > 0], "\n")
-        
+
         print("[3] Duplicate Rows")
         print(f"Total duplicates: {self.df.duplicated().sum()}\n")
-        
+
         print("[4] Numeric Summary")
         print(self.df.describe(), "\n")
-        
+
         print("[5] Categorical Columns Overview")
         for col in self.df.select_dtypes(include="object").columns:
             print(f"Column: {col}")
             print(f"- Unique: {self.df[col].nunique()}")
             print(self.df[col].value_counts().head(3), "\n")
-        
+
         print("=== Completed Data Exploration ===\n")
         return self.df
 
-    # ----------------------------------------------------------
-    # 2. CLEAN DATA
-    # ----------------------------------------------------------
     def clean_data(self) -> pd.DataFrame:
         """
         Clean dataset by removing missing values, duplicates, invalid dates,
         stripping text, and creating derived columns.
+
         Returns:
             pd.DataFrame: Cleaned dataframe.
         """
@@ -92,7 +89,7 @@ class FinancialDataAnalyzer:
             self.df.drop(columns=["Unnamed: 0"], inplace=True)
 
         # Parse dates
-        self.df["date"] = pd.to_datetime(self.df["date"], format='ISO8601', errors="coerce")
+        self.df["date"] = pd.to_datetime(self.df["date"], format="ISO8601", errors="coerce")
         before = len(self.df)
         self.df = self.df.dropna(subset=["date"])
         print(f"Removed {before - len(self.df)} rows with invalid dates.\n")
@@ -121,13 +118,11 @@ class FinancialDataAnalyzer:
         print("=== Completed Data Cleaning ===\n")
         return self.df
 
-    # ----------------------------------------------------------
-    # 3. EXPLORATORY ANALYSIS
-    # ----------------------------------------------------------
     def exploratory_analysis(self) -> pd.DataFrame:
         """
         Print statistics and distributions of stock articles, publisher counts,
         headline lengths, and article publishing times.
+
         Returns:
             pd.DataFrame: The dataframe with derived features.
         """
@@ -143,28 +138,29 @@ class FinancialDataAnalyzer:
         print("=== Completed Exploratory Analysis ===\n")
         return self.df
 
-    # ----------------------------------------------------------
-    # 4. TOPIC MODELING
-    # ----------------------------------------------------------
     def extract_topics(self, num_topics: int = 5, sample_size: int = 50000) -> Dict[str, List[str]]:
         """
         Run LDA topic modeling on headlines.
+
         Args:
             num_topics (int): Number of topics to extract.
             sample_size (int): Maximum number of headlines to sample for performance.
+
         Returns:
-            dict: Mapping from topic names to top words.
+            Dict[str, List[str]]: Mapping from topic names to top words.
         """
         print("\n================ TOPIC MODELING ================\n")
         stop_words = set(stopwords.words("english"))
-        finance_stops = {"stock", "market", "stocks", "shares", "session", "update", "daily", "trading", "today"}
+        finance_stops = {"stock", "market", "stocks", "shares", "session", "update",
+                         "daily", "trading", "today"}
         stop_words.update(finance_stops)
 
         lemmatizer = WordNetLemmatizer()
 
         def preprocess_text(text: str) -> str:
             text = re.sub(r"[^a-zA-Z\s]", "", str(text).lower())
-            tokens = [lemmatizer.lemmatize(w) for w in text.split() if w not in stop_words and len(w) > 2]
+            tokens = [lemmatizer.lemmatize(w) for w in text.split()
+                      if w not in stop_words and len(w) > 2]
             return " ".join(tokens)
 
         sampled_df = self.df.sample(n=min(sample_size, len(self.df)), random_state=42)
@@ -185,21 +181,17 @@ class FinancialDataAnalyzer:
         print("=== Completed Topic Modeling ===\n")
         return topics_summary
 
-    # ----------------------------------------------------------
-    # 5. KEY PHRASE ANALYSIS
-    # ----------------------------------------------------------
     def analyze_key_phrases(self) -> Dict[str, int]:
         """
         Count frequency of important financial keywords in headlines.
+
         Returns:
-            dict: Mapping from keyword to occurrence count.
+            Dict[str, int]: Mapping from keyword to occurrence count.
         """
         print("\n================ KEY PHRASE ANALYSIS ================\n")
-        phrases = [
-            "price target", "upgrade", "downgrade", "earnings",
-            "fda approval", "merger", "acquisition", "ipo",
-            "stock split", "dividend", "guidance", "analyst rating"
-        ]
+        phrases = ["price target", "upgrade", "downgrade", "earnings",
+                   "fda approval", "merger", "acquisition", "ipo",
+                   "stock split", "dividend", "guidance", "analyst rating"]
         counts = {p: self.df["headline"].str.lower().str.contains(p).sum() for p in phrases}
 
         for phrase, count in counts.items():
@@ -207,12 +199,10 @@ class FinancialDataAnalyzer:
         print("=== Completed Key Phrase Analysis ===\n")
         return counts
 
-    # ----------------------------------------------------------
-    # 6. PUBLISHER ANALYSIS
-    # ----------------------------------------------------------
     def analyze_publishers(self) -> pd.DataFrame:
         """
         Analyze publisher activity and classify article types.
+
         Returns:
             pd.DataFrame: Dataframe with article_type column added.
         """
@@ -221,10 +211,14 @@ class FinancialDataAnalyzer:
 
         def classify(headline: str) -> str:
             h = str(headline).lower()
-            if any(w in h for w in ["earnings", "eps", "report"]): return "Earnings"
-            if any(w in h for w in ["upgrade", "downgrade", "rating"]): return "Ratings"
-            if any(w in h for w in ["fda", "drug"]): return "Pharma"
-            if any(w in h for w in ["market", "stocks"]): return "Market"
+            if any(w in h for w in ["earnings", "eps", "report"]):
+                return "Earnings"
+            if any(w in h for w in ["upgrade", "downgrade", "rating"]):
+                return "Ratings"
+            if any(w in h for w in ["fda", "drug"]):
+                return "Pharma"
+            if any(w in h for w in ["market", "stocks"]):
+                return "Market"
             return "Other"
 
         self.df["article_type"] = self.df["headline"].apply(classify)
@@ -239,14 +233,13 @@ class FinancialDataAnalyzer:
         print("=== Completed Publisher Analysis ===\n")
         return self.df
 
-    # ----------------------------------------------------------
-    # 7. SAVE
-    # ----------------------------------------------------------
     def save_to_csv(self, path: str) -> pd.DataFrame:
         """
         Save cleaned dataframe to CSV.
+
         Args:
             path (str): File path for CSV.
+
         Returns:
             pd.DataFrame: Dataframe saved.
         """
@@ -257,37 +250,39 @@ class FinancialDataAnalyzer:
 
 class FinancialDataVisualizer:
     """
-    Visualize financial data including descriptive stats, publisher distribution,
-    topic modeling outputs, and key financial phrases.
+    Visualize financial news data, including descriptive statistics,
+    publisher distributions, topic modeling, and key phrase frequencies.
     """
 
     def __init__(self, df: pd.DataFrame):
+        """
+        Initialize visualizer with dataframe.
+
+        Args:
+            df (pd.DataFrame): Cleaned financial news data.
+        """
         self.df = df.copy()
 
     def descriptive_statistics(self):
         """
-        Plot distributions for headline length, top publishers, weekday counts, and monthly frequency.
+        Plot headline length, top publishers, weekday distributions, and monthly frequency.
         """
         fig = plt.figure(figsize=(15, 10))
 
-        # Headline length
         plt.subplot(2, 2, 1)
         sns.histplot(self.df["headline_length"], bins=50)
         plt.title("Headline Length Distribution")
 
-        # Top publishers
         plt.subplot(2, 2, 2)
         self.df["publisher"].value_counts().head(10).plot(kind="bar")
         plt.title("Top Publishers")
         plt.xticks(rotation=45)
 
-        # Day of week
         plt.subplot(2, 2, 3)
         day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         self.df["day_of_week"].value_counts().reindex(day_order).plot(kind="bar")
         plt.title("Articles by Day")
 
-        # Monthly frequency
         plt.subplot(2, 2, 4)
         monthly = self.df.set_index("date").resample("M").size()
         monthly.plot(marker="o")
@@ -304,10 +299,14 @@ class FinancialDataVisualizer:
 
         def classify(h):
             h = str(h).lower()
-            if any(w in h for w in ["earnings", "report", "eps"]): return "Earnings"
-            if any(w in h for w in ["upgrade", "downgrade", "target"]): return "Ratings"
-            if any(w in h for w in ["fda", "drug"]): return "Pharma"
-            if any(w in h for w in ["market", "stocks"]): return "Market"
+            if any(w in h for w in ["earnings", "report", "eps"]):
+                return "Earnings"
+            if any(w in h for w in ["upgrade", "downgrade", "target"]):
+                return "Ratings"
+            if any(w in h for w in ["fda", "drug"]):
+                return "Pharma"
+            if any(w in h for w in ["market", "stocks"]):
+                return "Market"
             return "Other"
 
         df["article_type"] = df["headline"].apply(classify)
@@ -324,8 +323,9 @@ class FinancialDataVisualizer:
     def visualize_topics(self, topics_summary: Optional[Dict[str, List[str]]] = None):
         """
         Visualize topic modeling results as horizontal bar charts.
+
         Args:
-            topics_summary (dict): {"Topic 1": [word1, word2,...]}
+            topics_summary (Dict[str, List[str]], optional): Mapping topic names to top words.
         """
         if not topics_summary:
             print("No topics to visualize.")
@@ -342,8 +342,9 @@ class FinancialDataVisualizer:
     def visualize_key_phrases(self, phrase_counts: Dict[str, int]):
         """
         Visualize key financial phrase counts as horizontal bar chart.
+
         Args:
-            phrase_counts (dict): {"phrase": count}
+            phrase_counts (Dict[str, int]): Mapping phrase to occurrence count.
         """
         phrase_df = pd.DataFrame.from_dict(phrase_counts, orient="index", columns=["count"])
         phrase_df.sort_values("count").plot(kind="barh", figsize=(10, 6))

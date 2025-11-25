@@ -7,8 +7,9 @@ from typing import Dict, Optional
 
 class TechnicalAnalyzer:
     """
-    Handles computation of technical indicators and key financial metrics.
-    Expected input DataFrame columns: ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'].
+    Compute technical indicators and key financial metrics from OHLCV data.
+    
+    Expected DataFrame columns: ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'].
     """
 
     def __init__(self, df: pd.DataFrame):
@@ -16,7 +17,7 @@ class TechnicalAnalyzer:
         Initialize TechnicalAnalyzer with OHLCV data.
 
         Args:
-            df (pd.DataFrame): Stock OHLCV data with 'Date' column.
+            df (pd.DataFrame): Stock OHLCV data with a 'Date' column.
         """
         self.df = df.copy()
 
@@ -37,7 +38,7 @@ class TechnicalAnalyzer:
             - MACD, MACD Signal, MACD Histogram
 
         Returns:
-            pd.DataFrame: DataFrame with new indicator columns.
+            pd.DataFrame: DataFrame with new indicator columns added.
         """
         print("[INFO] Calculating TA-Lib technical indicators...")
 
@@ -57,7 +58,7 @@ class TechnicalAnalyzer:
 
     def calculate_financial_metrics(self, risk_free_rate: float = 0.01) -> Dict[str, float]:
         """
-        Compute risk/performance metrics:
+        Compute key financial metrics:
             - Annualized volatility
             - Sharpe ratio
             - Maximum drawdown
@@ -66,7 +67,7 @@ class TechnicalAnalyzer:
             risk_free_rate (float): Annual risk-free rate (default 1%).
 
         Returns:
-            dict: {'volatility': float, 'sharpe_ratio': float, 'max_drawdown': float}
+            Dict[str, float]: {'volatility': float, 'sharpe_ratio': float, 'max_drawdown': float}
         """
         if self.df is None or self.df.empty:
             raise ValueError("TechnicalAnalyzer: DataFrame is empty.")
@@ -83,7 +84,7 @@ class TechnicalAnalyzer:
             np.sqrt(252) * excess_returns.mean() / excess_returns.std()
         )
 
-        # Max Drawdown
+        # Maximum Drawdown
         cumulative = (1 + self.df["Daily_Return"]).cumprod()
         peak = cumulative.expanding().max()
         drawdowns = cumulative / peak - 1
@@ -102,7 +103,7 @@ class StockVisualizer:
         Initialize StockVisualizer.
 
         Args:
-            df (pd.DataFrame): Stock OHLCV + indicators.
+            df (pd.DataFrame): Stock OHLCV data with indicators.
         """
         self.df = df.copy()
 

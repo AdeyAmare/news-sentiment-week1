@@ -67,3 +67,31 @@ Key Methods:
 ```plot_rsi()```: Plots Relative Strength Index with overbought/oversold bounds.
 
 ```plot_macd()```: Visualizes MACD line, Signal line, and Histogram.
+
+### 4. ```correlation_analysis.py```
+
+#### Class: ```NewsStockCorrelation```
+
+Purpose: Analyzes the relationship between financial news sentiment and stock price movements.
+
+Key Methods:
+
+```load_and_process_stocks()```: Loads stock price CSVs, normalizes dates, and computes daily returns.
+
+```load_and_process_news()```: Loads news headlines, normalizes dates, and computes average daily sentiment per stock.
+
+```merge_data()```: Aligns stock and news data by date and ticker.
+
+```calculate_correlation()```: Computes Pearson correlation between sentiment scores and daily stock returns per ticker.
+
+```plot_correlation_bar()```: Visualizes correlation coefficients as a bar chart.
+
+```plot_scatter()```: Scatter plot of sentiment vs returns.
+
+```plot_correlation_heatmap()```: Heatmap of sentiment-return correlations across tickers.
+
+```plot_pairplot_all()```: Pairplot for all tickers showing sentiment vs returns.
+
+```plot_sentiment_distribution()```: Distribution of sentiment scores.
+
+```plot_daily_sentiment()```: Time series of daily average sentiment per ticker.

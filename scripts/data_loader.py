@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 class DataLoader:
     """
     Handles reading tabular data from CSV files.

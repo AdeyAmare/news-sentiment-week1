@@ -40,8 +40,32 @@ Risk Metrics: Calculates Sharpe Ratio and Volatility to assess investment risk.
 
 Visualization: Produces professional financial charts for all indicators.
 
+#### 3. correlation_analysis.ipynb
+
+Focus: Correlation Analysis Between News Sentiment and Stock Performance
+
+Input:
+
+```processed_financial_news.csv``` (daily sentiment scores by stock)
+
+```yfinance_data/[TICKER].csv``` (stock data)
+
+Key Operations:
+
+Computes daily sentiment scores from financial news headlines using TextBlob.
+
+Aligns sentiment data with corresponding stock returns per ticker.
+
+Calculates Pearson correlation coefficients and p-values for each stock.
+
+Visualizes correlations with bar charts, scatter plots, heatmaps, and pairplots.
+
+Helps identify whether news sentiment has measurable impact on stock price movements.
+
 #### How to Run
 
 Run ```financial_analysis_eda.ipynb``` first to understand the news context.
 
 Run ```[TICKER]_stock_technical_analysis.ipynb``` to analyze market performance.
+
+Run ```correlation_analysis.ipynb``` to analyze market performance.
