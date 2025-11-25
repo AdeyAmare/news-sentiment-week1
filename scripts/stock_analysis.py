@@ -7,7 +7,8 @@ from typing import Dict, Optional
 
 class TechnicalAnalyzer:
     """
-    Compute technical indicators and key financial metrics from OHLCV data.
+    Compute technical indicators and key financial metrics from OHLCV data,
+    including PyNance-style metrics.
     
     Expected DataFrame columns: ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'].
     """
@@ -58,22 +59,30 @@ class TechnicalAnalyzer:
 
     def calculate_financial_metrics(self, risk_free_rate: float = 0.01) -> Dict[str, float]:
         """
-        Compute key financial metrics:
+        Compute key financial metrics and PyNance-style metrics:
             - Annualized volatility
             - Sharpe ratio
             - Maximum drawdown
+            - Cumulative returns
+            - Total return
+            - Rolling volatility
 
         Args:
             risk_free_rate (float): Annual risk-free rate (default 1%).
 
         Returns:
-            Dict[str, float]: {'volatility': float, 'sharpe_ratio': float, 'max_drawdown': float}
+            Dict[str, float]: Financial and risk metrics.
         """
         if self.df is None or self.df.empty:
             raise ValueError("TechnicalAnalyzer: DataFrame is empty.")
 
         metrics: Dict[str, float] = {}
+
+        # Daily returns
         self.df["Daily_Return"] = self.df["Close"].pct_change()
+
+        # Cumulative returns (PyNance style)
+        self.df["Cumulative_Return"] = (1 + self.df["Daily_Return"]).cumprod()
 
         # Annualized volatility
         metrics["volatility"] = self.df["Daily_Return"].std() * np.sqrt(252)
@@ -84,18 +93,24 @@ class TechnicalAnalyzer:
             np.sqrt(252) * excess_returns.mean() / excess_returns.std()
         )
 
-        # Maximum Drawdown
-        cumulative = (1 + self.df["Daily_Return"]).cumprod()
+        # Maximum drawdown
+        cumulative = self.df["Cumulative_Return"]
         peak = cumulative.expanding().max()
         drawdowns = cumulative / peak - 1
         metrics["max_drawdown"] = drawdowns.min()
+
+        # Total cumulative return
+        metrics["total_return"] = self.df["Cumulative_Return"].iloc[-1] - 1
+
+        # Rolling volatility (20-day annualized)
+        self.df["Rolling_Vol_20"] = self.df["Daily_Return"].rolling(20).std() * np.sqrt(252)
 
         return metrics
 
 
 class StockVisualizer:
     """
-    Visualize stock OHLCV data and computed technical indicators.
+    Visualize stock OHLCV data, technical indicators, and PyNance-style metrics.
     """
 
     def __init__(self, df: pd.DataFrame):
@@ -103,19 +118,16 @@ class StockVisualizer:
         Initialize StockVisualizer.
 
         Args:
-            df (pd.DataFrame): Stock OHLCV data with indicators.
+            df (pd.DataFrame): Stock OHLCV data with indicators and metrics.
         """
         self.df = df.copy()
 
     def plot_price_and_ma(self):
-        """
-        Plot Close price along with SMA 20 and SMA 50.
-        """
+        """Plot Close price along with SMA 20 and SMA 50."""
         plt.figure(figsize=(14, 7))
         plt.plot(self.df.index, self.df["Close"], label="Close Price", alpha=0.6)
         plt.plot(self.df.index, self.df["SMA_20"], label="SMA 20", color="orange")
         plt.plot(self.df.index, self.df["SMA_50"], label="SMA 50", color="green")
-
         plt.title("Close Price vs Moving Averages")
         plt.xlabel("Date")
         plt.ylabel("Price")
@@ -124,14 +136,11 @@ class StockVisualizer:
         plt.show()
 
     def plot_rsi(self):
-        """
-        Plot RSI with overbought (70) and oversold (30) reference lines.
-        """
+        """Plot RSI with overbought (70) and oversold (30) reference lines."""
         plt.figure(figsize=(14, 5))
         plt.plot(self.df.index, self.df["RSI"], label="RSI", color="purple")
         plt.axhline(70, color="red", linestyle="--", alpha=0.5)
         plt.axhline(30, color="green", linestyle="--", alpha=0.5)
-
         plt.title("Relative Strength Index (RSI)")
         plt.xlabel("Date")
         plt.ylabel("RSI")
@@ -140,9 +149,7 @@ class StockVisualizer:
         plt.show()
 
     def plot_macd(self):
-        """
-        Plot MACD line, signal line, and histogram.
-        """
+        """Plot MACD line, signal line, and histogram."""
         plt.figure(figsize=(14, 5))
         plt.plot(self.df.index, self.df["MACD"], label="MACD", color="blue")
         plt.plot(self.df.index, self.df["MACD_Signal"], label="Signal", color="red")
@@ -153,10 +160,31 @@ class StockVisualizer:
             color="gray",
             alpha=0.3
         )
-
         plt.title("MACD (Moving Average Convergence Divergence)")
         plt.xlabel("Date")
         plt.ylabel("MACD Value")
+        plt.legend()
+        plt.grid(alpha=0.3)
+        plt.show()
+
+    def plot_cumulative_returns(self):
+        """Plot cumulative returns over time (PyNance style)."""
+        plt.figure(figsize=(14, 5))
+        plt.plot(self.df.index, self.df["Cumulative_Return"], label="Cumulative Return", color="blue")
+        plt.title("Cumulative Returns Over Time")
+        plt.xlabel("Date")
+        plt.ylabel("Cumulative Return")
+        plt.legend()
+        plt.grid(alpha=0.3)
+        plt.show()
+
+    def plot_rolling_volatility(self):
+        """Plot rolling 20-day annualized volatility (PyNance style)."""
+        plt.figure(figsize=(14, 5))
+        plt.plot(self.df.index, self.df["Rolling_Vol_20"], label="Rolling Volatility (20 days)", color="orange")
+        plt.title("Rolling Annualized Volatility")
+        plt.xlabel("Date")
+        plt.ylabel("Volatility")
         plt.legend()
         plt.grid(alpha=0.3)
         plt.show()
